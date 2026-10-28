@@ -143,25 +143,10 @@ input[type="checkbox"]{display:none;}
 /* Print view */
 #print-area { display:none; }
 @media print {
-  body > *:not(#print-area) { display:none !important; }
-  #print-area {
-    display:block !important;
-    font-family:-apple-system,Arial,sans-serif;
-    direction:rtl;
-    padding:20px;
-    font-size:13px;
-    color:#000;
-  }
-  .psec { margin-bottom:18px; page-break-inside:avoid; }
-  .psec-title { font-size:13px; font-weight:700; background:#f0f4f8; padding:5px 8px; border-right:3px solid #2563eb; margin-bottom:6px; }
-  .prow { display:flex; justify-content:space-between; padding:4px 6px; border-bottom:1px solid #eee; font-size:12px; }
-  .prow:nth-child(even) { background:#f9f9f9; }
-  .pq { flex:1; }
-  .pa { font-weight:700; min-width:80px; text-align:center; color:#2563eb; }
-  .pmissing { background:#fef2f2; border:1px solid #dc2626; border-radius:6px; padding:8px 12px; margin-bottom:14px; font-size:12px; color:#dc2626; }
-  .pheader { margin-bottom:16px; }
-  .pheader h1 { font-size:16px; font-weight:700; margin-bottom:4px; }
-  .pheader p { font-size:11px; color:#555; }
+  body > *:not(#print-overlay) { display:none !important; }
+  #print-overlay { position:static !important; overflow:visible !important; }
+  #print-overlay > div:first-child { display:none !important; }
+  #print-content { display:block !important; font-family:-apple-system,Arial,sans-serif; direction:rtl; color:#000; }
 }
 </style>
 </head>
@@ -347,6 +332,18 @@ input[type="checkbox"]{display:none;}
 
 <div class="toast" id="toast"></div>
 <div id="print-area"></div>
+
+<!-- PRINT OVERLAY -->
+<div id="print-overlay" style="display:none;position:fixed;inset:0;background:#fff;z-index:500;flex-direction:column;overflow-y:auto;direction:rtl;">
+  <div style="background:#1a2332;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;flex-shrink:0;">
+    <span style="font-size:.9rem;font-weight:700;">תצוגת הדפסה</span>
+    <div style="display:flex;gap:10px;">
+      <button id="btn-do-print" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.85rem;font-weight:700;cursor:pointer;">🖨️ הדפס / שמור PDF</button>
+      <button id="btn-close-print" style="background:#374151;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:.85rem;font-weight:700;cursor:pointer;">✕ סגור</button>
+    </div>
+  </div>
+  <div id="print-content" style="flex:1;"></div>
+</div>
 
 <script>
 (function(){
@@ -571,66 +568,85 @@ function findMissing(rec) {
   return missing;
 }
 
-// ── PRINT ────────────────────────────────────────────────
+// ── PRINT VIEW (full page, works on iPad) ───────────────
 function printRecord(rec) {
   var raw = rec.raw || {};
-  var area = document.getElementById('print-area');
 
-  var html = '<div class="pheader"><h1>📋 שאלונים למבוגרים</h1>'
-    +'<p>נבדק: '+(rec.name||'—')+' | קוד: '+(rec.code||'—')+' | תאריך: '+(rec.date||'—')+'</p></div>';
+  // Build HTML for the print page
+  var body = '<div style="max-width:800px;margin:0 auto;padding:20px 16px;">';
+
+  // Header
+  body += '<div style="margin-bottom:20px;border-bottom:2px solid #2563eb;padding-bottom:12px;">'
+    +'<div style="font-size:20px;font-weight:700;margin-bottom:4px;">📋 שאלונים למבוגרים</div>'
+    +'<div style="font-size:12px;color:#555;">נבדק: '+(rec.name||'—')+' | קוד: '+(rec.code||'—')+' | תאריך: '+(rec.date||'—')+'</div>'
+    +'</div>';
 
   // Missing warning
   var missing = findMissing(rec);
   if (missing.length) {
-    html += '<div class="pmissing">⚠️ שאלות שלא מולאו:<br>';
+    body += '<div style="background:#fef2f2;border:1px solid #dc2626;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#dc2626;">'
+      +'<strong>⚠️ שאלות שלא מולאו:</strong><br>';
     for (var mi=0; mi<missing.length; mi++)
-      html += '<strong>'+missing[mi].section+':</strong> שאלות '+missing[mi].nums.join(', ')+'<br>';
-    html += '</div>';
+      body += '<strong>'+missing[mi].section+':</strong> שאלות '+missing[mi].nums.join(', ')+'<br>';
+    body += '</div>';
+  }
+
+  function secHtml(title, rows) {
+    var h = '<div style="margin-bottom:20px;page-break-inside:avoid;">'
+      +'<div style="font-size:13px;font-weight:700;background:#f0f4f8;padding:6px 10px;border-right:3px solid #2563eb;margin-bottom:4px;">'+title+'</div>';
+    for (var i=0; i<rows.length; i++) {
+      var bg = i%2===0 ? '#fff' : '#f9f9f9';
+      h += '<div style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;background:'+bg+';">'
+        +'<span style="flex:1;">'+rows[i][0]+'</span>'
+        +'<span style="font-weight:700;min-width:120px;text-align:center;color:#2563eb;">'+rows[i][1]+'</span>'
+        +'</div>';
+    }
+    h += '</div>';
+    return h;
   }
 
   // Personal info
-  html += '<div class="psec"><div class="psec-title">פרטים אישיים</div>';
   var infoRows = [['שם',rec.name||'—'],['קוד',rec.code||'—'],['גיל',rec.age||'—'],['מין',rec.gender||'—'],['השכלה (שנים)',rec.edu||'—'],['תאריך',rec.date||'—']];
-  for (var ir=0; ir<infoRows.length; ir++)
-    html += '<div class="prow"><span class="pq">'+infoRows[ir][0]+'</span><span class="pa">'+infoRows[ir][1]+'</span></div>';
-  html += '</div>';
+  body += secHtml('פרטים אישיים', infoRows);
 
   // Scored questionnaires
-  var qSections = [
+  var qSecs = [
     {title:'GAD-7 (סה"כ: '+rec.gad+')', items:GAD, prefix:'gad', labels:['כלל לא','כמה ימים','יותר ממחצית','כמעט כל יום'], values:[0,1,2,3]},
     {title:'PIU (סה"כ: '+rec.piu+')', items:PIU, prefix:'piu', labels:['0','1','2','3','4','5'], values:[0,1,2,3,4,5]},
     {title:'BRIEF-A (סה"כ: '+rec.brief+')', items:BRIEF, prefix:'brief', labels:['אף פעם','מדי פעם','לעיתים קרובות'], values:[1,2,3]},
     {title:'Conners (סה"כ: '+rec.conners+')', items:CONNERS, prefix:'conners', labels:['אף פעם','לפעמים','לעיתים תכופות','בדרך כלל'], values:[0,1,2,3]}
   ];
-  for (var si=0; si<qSections.length; si++) {
-    var s = qSections[si];
-    html += '<div class="psec"><div class="psec-title">'+s.title+'</div>';
+  for (var si=0; si<qSecs.length; si++) {
+    var s = qSecs[si];
+    var rows = [];
     for (var qi=0; qi<s.items.length; qi++) {
       var val = raw[s.prefix+'_'+qi];
-      var ansLbl = val !== undefined ? (s.labels[s.values.indexOf(val)] || val) : '⚠️ לא מולא';
-      html += '<div class="prow"><span class="pq">'+(qi+1)+'. '+s.items[qi]+'</span><span class="pa">'+ansLbl+'</span></div>';
+      var ansLbl = val !== undefined ? (s.labels[s.values.indexOf(val)] !== undefined ? s.labels[s.values.indexOf(val)] : val) : '⚠️ לא מולא';
+      rows.push([(qi+1)+'. '+s.items[qi], ansLbl]);
     }
-    html += '</div>';
+    body += secHtml(s.title, rows);
   }
 
   // BHCQ
-  html += '<div class="psec"><div class="psec-title">BHCQ (סה"כ: '+rec.bhcq+')</div>';
-  var bNum=1;
+  var bhcqRows = [];
+  var bNum = 1;
   for (var ci=0; ci<BHCQ.length; ci++) {
-    html += '<div class="prow" style="background:#f0f4f8;font-weight:700;font-size:11px;"><span class="pq">'+BHCQ[ci].n+'</span></div>';
+    bhcqRows.push(['— '+BHCQ[ci].n+' —', '']);
     for (var ii=0; ii<BHCQ[ci].items.length; ii++) {
       var bval = raw['bhcq_'+ci+'_'+ii];
-      var bans = bval !== undefined ? bval : '⚠️ לא מולא';
-      html += '<div class="prow"><span class="pq">'+bNum+'. '+BHCQ[ci].items[ii]+'</span><span class="pa">'+bans+'</span></div>';
+      bhcqRows.push([bNum+'. '+BHCQ[ci].items[ii], bval !== undefined ? bval : '⚠️ לא מולא']);
       bNum++;
     }
   }
-  html += '</div>';
+  body += secHtml('BHCQ (סה"כ: '+rec.bhcq+')', bhcqRows);
 
-  area.innerHTML = html;
-  window.print();
-  // Clean up after print dialog closes
-  setTimeout(function(){ area.innerHTML = ''; }, 1000);
+  body += '</div>';
+
+  // Show in print overlay
+  var overlay = document.getElementById('print-overlay');
+  var content = document.getElementById('print-content');
+  content.innerHTML = body;
+  overlay.style.display = 'flex';
 }
 
 function submit() {
@@ -877,6 +893,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Export
   document.getElementById('btn-csv').addEventListener('click', exportCSV);
   document.getElementById('btn-json').addEventListener('click', exportJSON);
+  document.getElementById('btn-do-print').addEventListener('click', function() { window.print(); });
+  document.getElementById('btn-close-print').addEventListener('click', function() {
+    document.getElementById('print-overlay').style.display = 'none';
+    document.getElementById('print-content').innerHTML = '';
+  });
+
   document.getElementById('btn-clear').addEventListener('click', function() {
     if (confirm('האם למחוק את כל הנתונים?')) {
       localStorage.removeItem('q_data');
