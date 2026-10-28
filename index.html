@@ -127,6 +127,42 @@ input[type="checkbox"]{display:none;}
 
 .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:9px 18px;border-radius:8px;font-size:.83rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+
+/* Missing questions badge */
+.missing-badge{display:inline-block;background:var(--err);color:#fff;border-radius:99px;padding:2px 8px;font-size:.7rem;font-weight:700;margin-right:6px;cursor:pointer;}
+.missing-none{display:inline-block;background:var(--ok);color:#fff;border-radius:99px;padding:2px 8px;font-size:.7rem;font-weight:700;margin-right:6px;}
+.missing-detail{background:var(--errL);border:1px solid var(--err);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:.78rem;color:var(--err);display:none;}
+.missing-detail.open{display:block;}
+.missing-detail ul{margin-right:16px;margin-top:4px;}
+.missing-detail li{margin-bottom:3px;}
+
+/* Print button */
+.btn-print{background:#6b7280;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:.75rem;font-weight:600;cursor:pointer;}
+.btn-print:hover{background:#4b5563;}
+
+/* Print view */
+#print-area { display:none; }
+@media print {
+  body > *:not(#print-area) { display:none !important; }
+  #print-area {
+    display:block !important;
+    font-family:-apple-system,Arial,sans-serif;
+    direction:rtl;
+    padding:20px;
+    font-size:13px;
+    color:#000;
+  }
+  .psec { margin-bottom:18px; page-break-inside:avoid; }
+  .psec-title { font-size:13px; font-weight:700; background:#f0f4f8; padding:5px 8px; border-right:3px solid #2563eb; margin-bottom:6px; }
+  .prow { display:flex; justify-content:space-between; padding:4px 6px; border-bottom:1px solid #eee; font-size:12px; }
+  .prow:nth-child(even) { background:#f9f9f9; }
+  .pq { flex:1; }
+  .pa { font-weight:700; min-width:80px; text-align:center; color:#2563eb; }
+  .pmissing { background:#fef2f2; border:1px solid #dc2626; border-radius:6px; padding:8px 12px; margin-bottom:14px; font-size:12px; color:#dc2626; }
+  .pheader { margin-bottom:16px; }
+  .pheader h1 { font-size:16px; font-weight:700; margin-bottom:4px; }
+  .pheader p { font-size:11px; color:#555; }
+}
 </style>
 </head>
 <body>
@@ -296,7 +332,7 @@ input[type="checkbox"]{display:none;}
       <div class="stats" id="stats"></div>
       <div style="overflow-x:auto;">
         <table class="dt">
-          <thead><tr><th>#</th><th>שם</th><th>קוד</th><th>גיל</th><th>מין</th><th>GAD-7</th><th>PIU</th><th>BRIEF-A</th><th>Conners</th><th>BHCQ</th><th>חוסן</th><th>קהילה</th><th>לאומי</th><th>תאריך</th></tr></thead>
+          <thead><tr><th>#</th><th>שם</th><th>קוד</th><th>גיל</th><th>מין</th><th>GAD-7</th><th>PIU</th><th>BRIEF-A</th><th>Conners</th><th>BHCQ</th><th>חוסן</th><th>קהילה</th><th>לאומי</th><th>תאריך</th><th>חסרים</th><th>הדפסה</th></tr></thead>
           <tbody id="dt-body"></tbody>
         </table>
       </div>
@@ -310,6 +346,7 @@ input[type="checkbox"]{display:none;}
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="print-area"></div>
 
 <script>
 (function(){
@@ -486,6 +523,116 @@ function sumBHCQ() {
   return t;
 }
 
+// ── MISSING QUESTIONS ────────────────────────────────────
+function findMissing(rec) {
+  var raw = rec.raw || {};
+  var missing = [];
+
+  // GAD-7
+  var gadMiss = [];
+  for (var i = 0; i < GAD.length; i++) { if (raw['gad_'+i] === undefined) gadMiss.push(i+1); }
+  if (gadMiss.length) missing.push({section:'GAD-7', nums: gadMiss});
+
+  // PIU
+  var piuMiss = [];
+  for (var i = 0; i < PIU.length; i++) { if (raw['piu_'+i] === undefined) piuMiss.push(i+1); }
+  if (piuMiss.length) missing.push({section:'PIU', nums: piuMiss});
+
+  // BRIEF
+  var briefMiss = [];
+  for (var i = 0; i < BRIEF.length; i++) { if (raw['brief_'+i] === undefined) briefMiss.push(i+1); }
+  if (briefMiss.length) missing.push({section:'BRIEF-A', nums: briefMiss});
+
+  // Conners
+  var connMiss = [];
+  for (var i = 0; i < CONNERS.length; i++) { if (raw['conners_'+i] === undefined) connMiss.push(i+1); }
+  if (connMiss.length) missing.push({section:'Conners', nums: connMiss});
+
+  // BHCQ
+  var bhcqMiss = [];
+  for (var ci = 0; ci < BHCQ.length; ci++)
+    for (var ii = 0; ii < BHCQ[ci].items.length; ii++)
+      if (raw['bhcq_'+ci+'_'+ii] === undefined) bhcqMiss.push(BHCQ[ci].n + ' #' + (ii+1));
+  if (bhcqMiss.length) missing.push({section:'BHCQ', nums: bhcqMiss});
+
+  // NATAL likerts
+  var q3m=[],q4m=[],q5m=[],q6m=[],q7m=[];
+  for(var i=0;i<Q3.length;i++) if(raw['q3_'+i]===undefined) q3m.push(i+1);
+  for(var i=0;i<Q4.length;i++) if(raw['q4_'+i]===undefined) q4m.push(i+1);
+  for(var i=0;i<Q5.length;i++) if(raw['q5_'+i]===undefined) q5m.push(i+1);
+  for(var i=0;i<Q6.length;i++) if(raw['q6_'+i]===undefined) q6m.push(i+1);
+  for(var i=0;i<Q7.length;i++) if(raw['q7_'+i]===undefined) q7m.push(i+1);
+  if(q3m.length) missing.push({section:'חשיפה – תגובות למלחמה', nums:q3m});
+  if(q4m.length) missing.push({section:'חשיפה – בעיות ותלונות', nums:q4m});
+  if(q5m.length) missing.push({section:'חשיפה – חוסן', nums:q5m});
+  if(q6m.length) missing.push({section:'חשיפה – קהילה', nums:q6m});
+  if(q7m.length) missing.push({section:'חשיפה – לאומי', nums:q7m});
+
+  return missing;
+}
+
+// ── PRINT ────────────────────────────────────────────────
+function printRecord(rec) {
+  var raw = rec.raw || {};
+  var area = document.getElementById('print-area');
+
+  var html = '<div class="pheader"><h1>📋 שאלונים למבוגרים</h1>'
+    +'<p>נבדק: '+(rec.name||'—')+' | קוד: '+(rec.code||'—')+' | תאריך: '+(rec.date||'—')+'</p></div>';
+
+  // Missing warning
+  var missing = findMissing(rec);
+  if (missing.length) {
+    html += '<div class="pmissing">⚠️ שאלות שלא מולאו:<br>';
+    for (var mi=0; mi<missing.length; mi++)
+      html += '<strong>'+missing[mi].section+':</strong> שאלות '+missing[mi].nums.join(', ')+'<br>';
+    html += '</div>';
+  }
+
+  // Personal info
+  html += '<div class="psec"><div class="psec-title">פרטים אישיים</div>';
+  var infoRows = [['שם',rec.name||'—'],['קוד',rec.code||'—'],['גיל',rec.age||'—'],['מין',rec.gender||'—'],['השכלה (שנים)',rec.edu||'—'],['תאריך',rec.date||'—']];
+  for (var ir=0; ir<infoRows.length; ir++)
+    html += '<div class="prow"><span class="pq">'+infoRows[ir][0]+'</span><span class="pa">'+infoRows[ir][1]+'</span></div>';
+  html += '</div>';
+
+  // Scored questionnaires
+  var qSections = [
+    {title:'GAD-7 (סה"כ: '+rec.gad+')', items:GAD, prefix:'gad', labels:['כלל לא','כמה ימים','יותר ממחצית','כמעט כל יום'], values:[0,1,2,3]},
+    {title:'PIU (סה"כ: '+rec.piu+')', items:PIU, prefix:'piu', labels:['0','1','2','3','4','5'], values:[0,1,2,3,4,5]},
+    {title:'BRIEF-A (סה"כ: '+rec.brief+')', items:BRIEF, prefix:'brief', labels:['אף פעם','מדי פעם','לעיתים קרובות'], values:[1,2,3]},
+    {title:'Conners (סה"כ: '+rec.conners+')', items:CONNERS, prefix:'conners', labels:['אף פעם','לפעמים','לעיתים תכופות','בדרך כלל'], values:[0,1,2,3]}
+  ];
+  for (var si=0; si<qSections.length; si++) {
+    var s = qSections[si];
+    html += '<div class="psec"><div class="psec-title">'+s.title+'</div>';
+    for (var qi=0; qi<s.items.length; qi++) {
+      var val = raw[s.prefix+'_'+qi];
+      var ansLbl = val !== undefined ? (s.labels[s.values.indexOf(val)] || val) : '⚠️ לא מולא';
+      html += '<div class="prow"><span class="pq">'+(qi+1)+'. '+s.items[qi]+'</span><span class="pa">'+ansLbl+'</span></div>';
+    }
+    html += '</div>';
+  }
+
+  // BHCQ
+  html += '<div class="psec"><div class="psec-title">BHCQ (סה"כ: '+rec.bhcq+')</div>';
+  var bNum=1;
+  for (var ci=0; ci<BHCQ.length; ci++) {
+    html += '<div class="prow" style="background:#f0f4f8;font-weight:700;font-size:11px;"><span class="pq">'+BHCQ[ci].n+'</span></div>';
+    for (var ii=0; ii<BHCQ[ci].items.length; ii++) {
+      var bval = raw['bhcq_'+ci+'_'+ii];
+      var bans = bval !== undefined ? bval : '⚠️ לא מולא';
+      html += '<div class="prow"><span class="pq">'+bNum+'. '+BHCQ[ci].items[ii]+'</span><span class="pa">'+bans+'</span></div>';
+      bNum++;
+    }
+  }
+  html += '</div>';
+
+  area.innerHTML = html;
+  window.print();
+  // Clean up after print dialog closes
+  setTimeout(function(){ area.innerHTML = ''; }, 1000);
+}
+
 function submit() {
   var genderEl = document.querySelector('input[name="p-gender"]:checked');
   var piuWorkEl = document.querySelector('input[name="piu-work"]:checked');
@@ -565,14 +712,52 @@ function openResearcher() {
     for (var di = 0; di < data.length; di++) {
       var r = data[di];
       var row = document.createElement('tr');
+      var missing = findMissing(r);
+      var totalMissing = missing.reduce(function(a,m){return a+m.nums.length;},0);
+      var missingCell;
+      if (totalMissing === 0) {
+        missingCell = '<span class="missing-none">✓ שלם</span>';
+      } else {
+        var detailId = 'miss-'+di;
+        var detail = '<div class="missing-detail" id="'+detailId+'"><ul>';
+        for (var mi=0;mi<missing.length;mi++) detail += '<li><strong>'+missing[mi].section+':</strong> שאלות '+missing[mi].nums.join(', ')+'</li>';
+        detail += '</ul></div>';
+        missingCell = '<span class="missing-badge" data-target="'+detailId+'">⚠️ '+totalMissing+' חסרות</span>'+detail;
+      }
       row.innerHTML = '<td>'+(di+1)+'</td><td>'+(r.name||'—')+'</td><td>'+(r.code||'—')+'</td><td>'+(r.age||'—')+'</td><td>'+(r.gender||'—')+'</td>'
         +'<td><strong>'+(r.gad!=null?r.gad:'—')+'</strong></td><td>'+(r.piu!=null?r.piu:'—')+'</td><td>'+(r.brief!=null?r.brief:'—')+'</td>'
         +'<td>'+(r.conners!=null?r.conners:'—')+'</td><td>'+(r.bhcq!=null?r.bhcq:'—')+'</td><td>'+(r.resilience!=null?r.resilience:'—')+'</td>'
-        +'<td>'+(r.community!=null?r.community:'—')+'</td><td>'+(r.national!=null?r.national:'—')+'</td><td>'+(r.date||'—')+'</td>';
+        +'<td>'+(r.community!=null?r.community:'—')+'</td><td>'+(r.national!=null?r.national:'—')+'</td><td>'+(r.date||'—')+'</td>'
+        +'<td>'+missingCell+'</td>'
+        +'<td><button class="btn-print" data-idx="'+di+'">🖨️ הדפס</button></td>';
       tbody.appendChild(row);
     }
   }
   document.getElementById('res-overlay').classList.add('open');
+
+  // Missing badges toggle
+  var badges = document.querySelectorAll('.missing-badge');
+  for (var bi=0; bi<badges.length; bi++) {
+    (function(badge){
+      badge.addEventListener('click', function(){
+        var target = document.getElementById(badge.getAttribute('data-target'));
+        if (target) target.classList.toggle('open');
+      });
+    })(badges[bi]);
+  }
+
+  // Print buttons
+  var printBtns = document.querySelectorAll('.btn-print');
+  for (var pi=0; pi<printBtns.length; pi++) {
+    (function(btn){
+      btn.addEventListener('click', function(){
+        var idx = parseInt(btn.getAttribute('data-idx'));
+        var data2 = [];
+        try { data2 = JSON.parse(localStorage.getItem('q_data')||'[]'); } catch(e){}
+        if (data2[idx]) printRecord(data2[idx]);
+      });
+    })(printBtns[pi]);
+  }
 }
 
 function exportCSV() {
