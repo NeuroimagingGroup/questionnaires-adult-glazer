@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>שאלונים למבוגרים</title>
+<style>
+
+:root{--bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;--border:#dce3ea;--text:#1a2332;--text2:#5a6a7e;--accent:#2563eb;--accentL:#eff6ff;--accentH:#1d4ed8;--ok:#059669;--okL:#ecfdf5;--warn:#d97706;--err:#dc2626;--errL:#fef2f2;--tabBg:#e8edf3;--sh:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);--r:12px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;padding-bottom:env(safe-area-inset-bottom,0);}
+
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.hdr-title{font-size:1.05rem;font-weight:700;}
+.hdr-sub{font-size:.76rem;color:var(--text2);margin-top:2px;}
+.hdr-acts{display:flex;gap:8px;}
+.ico-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.8rem;color:var(--text2);}
+
+.prog-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px 10px;position:sticky;top:61px;z-index:99;}
+.prog-lbls{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text2);margin-bottom:5px;}
+.prog-track{background:var(--tabBg);border-radius:99px;height:6px;overflow:hidden;}
+.prog-fill{background:var(--accent);height:100%;border-radius:99px;transition:width .4s;}
+
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 12px;overflow-x:auto;display:flex;gap:2px;scrollbar-width:none;position:sticky;top:103px;z-index:98;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:10px 13px;border:none;background:transparent;color:var(--text2);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:.8rem;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700;}
+.tab.done{color:var(--ok);}
+.tab.done::before{content:'✓ ';}
+
+.main{max-width:800px;margin:0 auto;padding:18px 14px;}
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);margin-bottom:18px;overflow:hidden;box-shadow:var(--sh);display:none;}
+.card.show{display:block;}
+.card-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:13px 17px;}
+.card-title{font-size:.96rem;font-weight:700;}
+.card-desc{font-size:.76rem;color:var(--text2);margin-top:3px;}
+.card-body{padding:17px;}
+
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.igrid{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fl{font-size:.76rem;font-weight:600;color:var(--text2);}
+.fi{border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:.94rem;color:var(--text);background:var(--bg);width:100%;}
+.fi:focus{outline:none;border-color:var(--accent);background:var(--surface);}
+.radio-row{display:flex;gap:10px;margin-top:6px;}
+.radio-row label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.88rem;}
+
+.qb{margin-bottom:20px;}
+.qb:last-child{margin-bottom:0;}
+.qt{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.qn{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;background:var(--accentL);color:var(--accent);border-radius:50%;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+
+.lw{overflow-x:auto;}
+.lt{width:100%;border-collapse:collapse;min-width:340px;}
+.lt th{font-size:.68rem;font-weight:600;color:var(--text2);text-align:center;padding:6px 3px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.lt td{text-align:center;padding:5px 2px;border-bottom:1px solid var(--border);}
+.lt tr:last-child td{border-bottom:none;}
+.lt .il{text-align:right;font-size:.82rem;color:var(--text);padding:9px 10px;}
+.lr{display:none;}
+.lb{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--surface);cursor:pointer;font-size:.76rem;font-weight:600;color:var(--text2);}
+.lr:checked+.lb{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.1);}
+
+.cg{display:flex;flex-wrap:wrap;gap:8px;}
+.cr{display:none;}
+.cl{padding:7px 14px;border:2px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--text2);background:var(--surface);}
+.cr:checked+.cl{border-color:var(--accent);background:var(--accentL);color:var(--accent);font-weight:600;}
+
+.chkw{display:flex;flex-direction:column;gap:8px;}
+.chi{display:flex;align-items:flex-start;gap:10px;cursor:pointer;}
+.chb{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;background:var(--surface);}
+input[type="checkbox"]:checked+.chb{background:var(--accent);border-color:var(--accent);}
+input[type="checkbox"]:checked+.chb::after{content:'✓';color:#fff;font-size:12px;font-weight:700;}
+input[type="checkbox"]{display:none;}
+.cht{font-size:.85rem;color:var(--text);line-height:1.4;}
+
+.oi{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:.87rem;color:var(--text);background:var(--bg);resize:vertical;min-height:50px;}
+.oi:focus{outline:none;border-color:var(--accent);}
+
+.sr{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:8px 0;}
+.si{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.srad{display:none;}
+.sbtn{width:44px;height:44px;border-radius:8px;border:2px solid var(--border);background:var(--surface);cursor:pointer;font-size:.84rem;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.srad:checked+.sbtn{background:var(--accent);border-color:var(--accent);color:#fff;}
+.slbl{font-size:.57rem;color:var(--text2);text-align:center;max-width:50px;}
+
+.ssec{font-size:.82rem;font-weight:700;color:var(--accent);margin:16px 0 9px;padding-bottom:5px;border-bottom:2px solid var(--accentL);}
+
+.nav{background:var(--surface);border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0;z-index:100;padding-bottom:calc(12px + env(safe-area-inset-bottom,0));}
+.btn{padding:11px 24px;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;border:none;}
+.btn-p{background:var(--accent);color:#fff;}
+.btn-s{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-ok{background:var(--ok);color:#fff;}
+.step-ind{font-size:.78rem;color:var(--text2);}
+
+.done-screen{text-align:center;padding:50px 20px;display:none;}
+.done-screen.show{display:block;}
+.done-ico{font-size:5rem;margin-bottom:16px;}
+.done-title{font-size:1.5rem;font-weight:700;margin-bottom:10px;}
+.done-sub{color:var(--text2);font-size:.93rem;margin-bottom:28px;line-height:1.6;}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:18px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--r);width:100%;max-width:920px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h2{font-size:.98rem;font-weight:700;}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text2);padding:2px 8px;border-radius:6px;}
+.modal-body{padding:18px;overflow-y:auto;flex:1;}
+
+.lock-box{background:var(--surface);border-radius:var(--r);padding:30px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.lock-box h3{font-size:1.1rem;font-weight:700;margin-bottom:8px;}
+.lock-box p{font-size:.83rem;color:var(--text2);margin-bottom:18px;}
+.lock-inp{width:100%;border:2px solid var(--border);border-radius:8px;padding:12px;font-size:1.1rem;text-align:center;letter-spacing:.3em;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);}
+.lock-inp:focus{outline:none;border-color:var(--accent);}
+.lock-err{color:var(--err);font-size:.78rem;margin-top:8px;min-height:16px;}
+.lock-btns{display:flex;gap:10px;margin-top:14px;justify-content:center;}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;text-align:center;}
+.stat-v{font-size:1.5rem;font-weight:700;color:var(--accent);}
+.stat-l{font-size:.68rem;color:var(--text2);margin-top:2px;}
+
+.dt{width:100%;border-collapse:collapse;font-size:.8rem;}
+.dt th,.dt td{padding:7px 9px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;}
+.dt th{font-weight:700;color:var(--text2);background:var(--surface2);}
+.dt tr:hover td{background:var(--surface2);}
+.exp-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--surface);padding:9px 18px;border-radius:8px;font-size:.83rem;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-title">📋 שאלונים למבוגרים</div>
+    <div class="hdr-sub" id="name-disp">נא מלא פרטים בשלב הראשון</div>
+  </div>
+  <div class="hdr-acts">
+    <button class="ico-btn" id="btn-theme">🌙</button>
+    <button class="ico-btn" id="btn-researcher">🔒 חוקר</button>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-lbls"><span id="prog-lbl">שלב 1 מתוך 7</span><span id="prog-pct">0%</span></div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-step="0">📝 פרטים</button>
+  <button class="tab" data-step="1">חשיפה לאירועי מלחמה</button>
+  <button class="tab" data-step="2">BHCQ</button>
+  <button class="tab" data-step="3">PIU</button>
+  <button class="tab" data-step="4">GAD-7</button>
+  <button class="tab" data-step="5">BRIEF-A</button>
+  <button class="tab" data-step="6">Conners</button>
+</div>
+
+<div class="main">
+
+<!-- STEP 0 -->
+<div class="card show" id="step-0">
+  <div class="card-hdr"><div class="card-title">פרטים אישיים</div><div class="card-desc">מלא את הפרטים לפני תחילת השאלונים</div></div>
+  <div class="card-body">
+    <div class="igrid">
+      <div class="fg"><label class="fl">שם מלא</label><input class="fi" type="text" id="p-name" placeholder="שם פרטי ומשפחה"></div>
+      <div class="fg"><label class="fl">מין</label>
+        <div class="radio-row">
+          <label><input type="radio" name="p-gender" value="זכר"> זכר</label>
+          <label><input type="radio" name="p-gender" value="נקבה"> נקבה</label>
+          <label><input type="radio" name="p-gender" value="אחר"> אחר</label>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">גיל</label><input class="fi" type="number" id="p-age" placeholder="גיל" min="18" max="120"></div>
+      <div class="fg"><label class="fl">תאריך מילוי</label><input class="fi" type="date" id="p-date"></div>
+      <div class="fg"><label class="fl">שנות השכלה</label><input class="fi" type="number" id="p-edu" placeholder="שנות לימוד" min="0" max="30"></div>
+      <div class="fg"><label class="fl">קוד נבדק</label><input class="fi" type="text" id="p-code" placeholder="למשל: A001"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 1 -->
+<div class="card" id="step-1">
+  <div class="card-hdr"><div class="card-title">חשיפה לאירועי מלחמה</div><div class="card-desc">War-related events – NATAL</div></div>
+  <div class="card-body">
+    <div class="qb">
+      <div class="qt"><span class="qn">1</span>איך את/ה מעריך/ה את בריאותך הנפשית והפיזית?</div>
+      <div style="margin-bottom:14px;"><div class="fl" style="margin-bottom:8px;">בריאות נפשית / ריגשית</div><div class="sr" id="q1a"></div></div>
+      <div><div class="fl" style="margin-bottom:8px;">בריאות פיזית</div><div class="sr" id="q1b"></div></div>
+    </div>
+    <div class="qb">
+      <div class="qt"><span class="qn">2</span>נעזרת במהלך השנה האחרונה באחד מהאמצעים הבאים כדי להקל על מצוקה נפשית?</div>
+      <div class="chkw">
+        <label class="chi"><input type="checkbox" name="q2" value="לא נעזרתי כלל"><span class="chb"></span><span class="cht">לא נעזרתי כלל</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="מעגל חברתי קרוב"><span class="chb"></span><span class="cht">כן, במעגל החברתי הקרוב אליי</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="אנשי דת"><span class="chb"></span><span class="cht">כן, באנשי דת</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="סדנאות וטיפולים קבוצתיים"><span class="chb"></span><span class="cht">כן, בסדנאות וטיפולים קבוצתיים</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="אנשי טיפול מקצועיים"><span class="chb"></span><span class="cht">כן, באנשי טיפול מקצועיים</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="טיפול תרופתי"><span class="chb"></span><span class="cht">כן, בטיפול תרופתי</span></label>
+        <label class="chi"><input type="checkbox" name="q2" value="אחר"><span class="chb"></span><span class="cht">כן – אחר:</span></label>
+      </div>
+      <input class="oi" style="margin-top:8px;" type="text" id="q2-other" placeholder="פירוט...">
+    </div>
+    <div class="qb"><div class="qt"><span class="qn">3</span>תגובות למלחמה – סמן/י את התשובה המתארת את תחושותייך במהלך השנה האחרונה</div><div class="lw"><table class="lt" id="q3-t"></table></div></div>
+    <div class="qb"><div class="qt"><span class="qn">4</span>בעיות ותלונות – באיזו מידה סבלת מבעיה זו בימים אלו</div><div class="lw"><table class="lt" id="q4-t"></table></div></div>
+    <div class="qb"><div class="qt"><span class="qn">5</span>עד כמה כל אחד מההיגדים הבאים מתאר אותך בדרך-כלל (0-4)</div><div class="lw"><table class="lt" id="q5-t"></table></div></div>
+    <div class="qb"><div class="qt"><span class="qn">6</span>עד כמה את/ה מסכים/ה – מקום מגורייך הקבוע</div><div class="lw"><table class="lt" id="q6-t"></table></div></div>
+    <div class="qb"><div class="qt"><span class="qn">7</span>עד כמה את/ה מסכים/ה – מדינת ישראל בהקשר למלחמה</div><div class="lw"><table class="lt" id="q7-t"></table></div></div>
+    <div class="qb">
+      <div class="qt"><span class="qn">8</span>האם נחשפת בעבר (לפני מלחמת חרבות ברזל) לאירוע טראומטי בעקבות טרור או מלחמה?</div>
+      <div class="cg">
+        <label><input type="radio" class="cr" name="q8" value="כן"><span class="cl">כן</span></label>
+        <label><input type="radio" class="cr" name="q8" value="לא"><span class="cl">לא</span></label>
+        <label><input type="radio" class="cr" name="q8" value="לא בטוח"><span class="cl">לא בטוח</span></label>
+      </div>
+      <input class="oi" style="margin-top:8px;" type="text" id="q8-detail" placeholder="אנא פרט...">
+    </div>
+    <div class="qb"><div class="qt"><span class="qn">9</span>לגבי כל אחד מהאירועים הבאים, סמן האם חווית אותו בשנה האחרונה</div><div id="q9"></div></div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="card" id="step-2">
+  <div class="card-hdr"><div class="card-title">שאלון הרגלים התנהגותיים ושליטה (BHCQ)</div><div class="card-desc">עד כמה כל היגד מתאר אותך במהלך 12 החודשים האחרונים | 0=כלל לא · 5=במידה מלאה</div></div>
+  <div class="card-body" id="bhcq-body"></div>
+</div>
+
+<!-- STEP 3 -->
+<div class="card" id="step-3">
+  <div class="card-hdr"><div class="card-title">שימוש בעייתי באינטרנט (PIU)</div><div class="card-desc">0=לא רלוונטי | 1=לעיתים רחוקות | 2=מדי פעם | 3=לעיתים קרובות | 4=לעיתים תכופות | 5=תמיד</div></div>
+  <div class="card-body">
+    <div class="igrid" style="margin-bottom:16px;">
+      <div class="fg"><label class="fl">כמה שנים משתמש/ת באינטרנט</label><input class="fi" type="number" id="piu-years" placeholder="שנים" min="0"></div>
+      <div class="fg"><label class="fl">שימוש לצורכי עבודה?</label>
+        <div class="radio-row"><label><input type="radio" name="piu-work" value="כן"> כן</label><label><input type="radio" name="piu-work" value="לא"> לא</label></div>
+      </div>
+    </div>
+    <div class="lw"><table class="lt" id="piu-t"></table></div>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div class="card" id="step-4">
+  <div class="card-hdr"><div class="card-title">שאלון הפרעת חרדה כללית (GAD-7)</div><div class="card-desc">במהלך השבועיים האחרונים, באיזו תדירות הוטרדת מהבעיות הבאות?</div></div>
+  <div class="card-body"><div class="lw"><table class="lt" id="gad-t"></table></div></div>
+</div>
+
+<!-- STEP 5 -->
+<div class="card" id="step-5">
+  <div class="card-hdr"><div class="card-title">BRIEF-A – שאלון התנהגותי למבוגרים</div><div class="card-desc">במהלך החודש האחרון, באיזו תדירות כל אחת מן ההתנהגויות הבאות היוותה בעיה?</div></div>
+  <div class="card-body"><div class="lw"><table class="lt" id="brief-t"></table></div></div>
+</div>
+
+<!-- STEP 6 -->
+<div class="card" id="step-6">
+  <div class="card-hdr"><div class="card-title">Conners 3 – AI – Self Report</div><div class="card-desc">בחודש האחרון, אני... | 0=אף פעם · 1=לפעמים · 2=לעיתים תכופות · 3=בדרך כלל</div></div>
+  <div class="card-body"><div class="lw"><table class="lt" id="conners-t"></table></div></div>
+</div>
+
+<!-- DONE -->
+<div class="done-screen" id="done-screen">
+  <div class="done-ico">✅</div>
+  <div class="done-title">תודה על השתתפותך!</div>
+  <div class="done-sub">השאלון הושלם בהצלחה.<br>אנא החזר/י את המכשיר לחוקר.</div>
+  <button class="btn btn-p" id="btn-new">נבדק/ת חדש/ה</button>
+</div>
+
+</div><!-- /main -->
+
+<div class="nav" id="nav">
+  <button class="btn btn-s" id="btn-back" style="display:none">→ הקודם</button>
+  <span class="step-ind" id="step-ind">שלב 1 מתוך 7</span>
+  <button class="btn btn-p" id="btn-next">הבא ←</button>
+</div>
+
+<!-- LOCK -->
+<div class="overlay" id="lock-overlay">
+  <div class="lock-box">
+    <h3>🔒 כניסת חוקר</h3>
+    <p>הכנס/י את הקוד כדי לצפות בנתונים</p>
+    <input class="lock-inp" type="password" id="lock-inp" placeholder="••••" maxlength="6">
+    <div class="lock-err" id="lock-err"></div>
+    <div class="lock-btns">
+      <button class="btn btn-p" id="btn-lock-ok">כניסה</button>
+      <button class="btn btn-s" id="btn-lock-cancel">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESEARCHER -->
+<div class="overlay" id="res-overlay">
+  <div class="modal">
+    <div class="modal-hdr"><h2>📊 פאנל חוקר – נתוני נבדקים</h2><button class="modal-close" id="btn-res-close">✕</button></div>
+    <div class="modal-body">
+      <div class="stats" id="stats"></div>
+      <div style="overflow-x:auto;">
+        <table class="dt">
+          <thead><tr><th>#</th><th>שם</th><th>קוד</th><th>גיל</th><th>מין</th><th>GAD-7</th><th>PIU</th><th>BRIEF-A</th><th>Conners</th><th>BHCQ</th><th>חוסן</th><th>קהילה</th><th>לאומי</th><th>תאריך</th></tr></thead>
+          <tbody id="dt-body"></tbody>
+        </table>
+      </div>
+      <div class="exp-row">
+        <button class="btn btn-p" id="btn-csv">📥 ייצוא CSV</button>
+        <button class="btn btn-s" id="btn-json">📄 ייצוא JSON</button>
+        <button class="btn btn-s" id="btn-clear">🗑️ נקה הכל</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+// ── CONFIG ──────────────────────────────────────────────
+var CODE = '1234'; // ← שנה את קוד החוקר כאן
+var STEPS = 7;
+var step = 0;
+var answers = {};
+
+// ── DATA ────────────────────────────────────────────────
+var Q3 = ['אני מרגיש/ה שהחיים שלי בסכנה','אני מרגיש/ה שקיומה של מדינת ישראל בסכנה','אני חושב/ת שחיי בני משפחתי וחיי היקרים לי נמצאים בסכנה','אני חושש/ת שמדינת ישראל לא תחזיר את החטופים והעקורים לביתם','אני חושש/ת מהחזית בצפון (חיזבאללה ו/או איראן)'];
+var Q4 = ['הרגשת בדידות','הרגשת עצבות','הרגשת חוסר ערך','חוסר תקווה לגבי העתיד','עצבנות','פחד ומתח','התקפי פאניקה','חוסר שקט – אי אפשר לשבת במקום אחד','הרגשת עילפון או סחרחורת','כאבים או מועקה בלב/בחזה','בחילה או אי שקט בבטן','קושי בנשימה','גלי חום או קור','הרגשת חולשה או דקירות בחלקים מגופך'];
+var Q5 = ['אני יכול/ה להסתגל לשינוי','אני יכול/ה להתמודד עם כל דבר','אני מנסה לראות את הצד ההומוריסטי בדברים','התמודדות עם לחץ מחזקת אותי','אני נוטה להתאושש מהר אחרי זמנים קשים','אני יכול/ה להשיג את מטרותיי למרות המכשולים','אני יכול/ה להישאר ממוקד/ת גם תחת לחץ','אני לא נרתע/ת בקלות מכישלון','אני תופס/ת את עצמי כאדם חזק','אני מסוגל/ת להתמודד עם רגשות לא נעימים'];
+var Q6 = ['הרשות העירונית מתפקדת כראוי במלחמה','קיימת עזרה הדדית ודאגה לאחר במקום מגוריי','מקום מגוריי מאורגן למצבי חירום','אני גאה לומר לאחרים היכן אני גר/ה','היחסים בין הקבוצות השונות טובים','אני יכול/ה לסמוך על אנשים במקום מגוריי','התושבים יודעים מה תפקידם במצב חירום','אני מרגיש/ה שייך למקום מגוריי','שוררים יחסי אמון בין התושבים'];
+var Q7 = ['הממשלה תגיע להחלטות נכונות בניהול המלחמה','כל החברה הישראלית תעמוד מאחורי החלטות הממשלה','אמון ביכולת כוחות הביטחון להגן על אוכלוסיית ישראל','ישראל היא ביתי ואיני מתכוון/ת לעזוב','החברה הישראלית תתמודד היטב עם המשבר הנוכחי','אני אופטימי/ת לגבי עתידה של ישראל','היחסים החברתיים בין הקבוצות השונות בארץ טובים','בחברה הישראלית יש סולידריות חברתית גבוהה','הביטוי "אדם לאדם זאב" אינו מאפיין את החברה הישראלית','בחברה הישראלית קיימים צדק חברתי ושוויון','אמון מלא ביכולתה של מערכת הביטחון','אמון מלא ביכולתה של ממשלת ישראל לדאוג לשיקום'];
+var Q9E = ['אובדן או פגיעה משמעותית בפרנסה','איום מירי טילים','בני/בנות זוג ו/או ילדים מגויסים','חשיפה למראות קשים','בן/בת משפחה או חבר/ה קרוב/ה נפצע קשה','חדירה ליישוב ב-7/10','פציעה פיזית','פינוי מן הבית','בני משפחה/חברים חטופים/נעדרים/הרוגים','עימות ישיר עם מחבל/ים','עימות עם כוחות הביטחון הישראליים','אירוע אחר שנתפס כמלחיץ מאוד'];
+
+var BHCQ = [
+  {n:'קניות',items:['אני מרגיש/ה דחף חזק לקנות גם כשאין לי צורך במשהו','אני מבזבז/ת יותר זמן או כסף על קניות ממה שהתכוונתי','ניסיתי להפחית את הקניות אך התקשיתי','כאשר איני יכול/ה לקנות אני מרגיש/ה חוסר שקט','אני זקוק/ה לקנות יותר מבעבר כדי להרגיש סיפוק','הקניות שלי גורמות לבעיות בחיי היומיום']},
+  {n:'אוכל',items:['אני מרגיש/ה דחף חזק לאכול גם כשאיני רעב/ה','אני אוכל/ת יותר ממה שתכננתי','ניסיתי להפחית את האכילה אך התקשיתי','כאשר איני יכול/ה לאכול את מה שרוצה אני עצבני/ת','אני צריך/ה לאכול יותר מבעבר כדי להרגיש סיפוק','האכילה שלי גורמת לבעיות בחיי היומיום']},
+  {n:'הימורים',items:['הימרתי יותר ממה שיכולתי להרשות לעצמי','נזקקתי להמר בסכומים גדולים יותר כדי להשיג אותה תחושה','חזרתי ביום אחר כדי לנסות להחזיר את הכסף שהפסדתי','לוויתי כסף או מכרתי משהו כדי להמר','הרגשתי שאולי יש לי בעיה עם הימורים','אנשים ביקרו את ההימורים שלי','הרגשתי אשמה לגבי ההימורים שלי','ההימורים גרמו לי לבעיות בריאותיות','ההימורים גרמו לבעיות כלכליות']},
+  {n:'התנהגות מינית',items:['השקעתי זמן רב במחשבות על מין/אוננות','הרגשתי דחף הולך וגובר לאונן או לקיים יחסי מין','השתמשתי במין/אוננות כדי לשכוח מבעיות אישיות','ניסיתי להפחית במין/אוננות ללא הצלחה','הרגשתי חוסר שקט כשנמנעה האפשרות','קיימתי כל כך הרבה פעילות מינית עד שזה פגע ביחסים/עבודה']},
+  {n:'עבודה',items:['אני מרגיש/ה צורך כפייתי לעבוד גם כשצריך/ה להפסיק','אני עובד/ת יותר זמן ממה שהתכוונתי','ניסיתי להפחית בעבודה אך התקשיתי','כאשר איני עובד/ת אני מרגיש/ה אי-נוחות','אני צריך/ה לעבוד יותר מבעבר כדי להרגיש סיפוק','העבודה שלי גורמת לבעיות בתחומים אחרים']},
+  {n:'פעילות גופנית',items:['אני מרגיש/ה צורך חזק להתעמל','אני מתאמן/ת יותר ממה שהתכוונתי','ניסיתי להפחית בפעילות גופנית אך התקשיתי','כאשר איני יכול/ה להתעמל אני מרגיש/ה חסר/ת שקט','אני זקוק/ה ליותר פעילות גופנית מבעבר כדי להרגיש סיפוק','הפעילות הגופנית שלי גורמת לבעיות בחיי']},
+  {n:'שימוש באינטרנט',items:['אני מרגיש/ה דחף חזק להיכנס לאינטרנט','אני נשאר/ת באינטרנט זמן רב יותר ממה שהתכוונתי','ניסיתי להפחית את השימוש באינטרנט אך התקשיתי','כאשר איני יכול/ה להיכנס לאינטרנט אני מרגיש/ה חסר/ת שקט','אני צריך/ה לבלות יותר זמן באינטרנט כדי להרגיש סיפוק','השימוש שלי באינטרנט גורם לבעיות בחיי']},
+  {n:'משחקי וידאו',items:['חשבתי על משחקים במשך כל היום','הקדשתי זמן הולך וגדל למשחקים','שיחקתי כדי לשכוח מהמצב הרוח','אחרים ניסו ללא הצלחה להפחית את זמן המשחק שלי','הרגשתי רע כשלא יכולתי לשחק','היו לי עימותים עם אחרים לגבי הזמן שאני מבלה במשחקים','הזנחתי פעילויות חשובות (לימודים, עבודה, ספורט) כדי לשחק']},
+  {n:'שימוש בסמארטפון',items:['אני מרגיש/ה דחף חזק להשתמש בסמארטפון שלי','אני משתמש/ת בסמארטפון יותר ממה שהתכוונתי','ניסיתי להפחית את השימוש בסמארטפון אך התקשיתי','כאשר איני יכול/ה להשתמש בו אני מרגיש/ה חסר/ת שקט','אני צריך/ה להשתמש בו יותר כדי להרגיש סיפוק','השימוש שלי בסמארטפון גורם לבעיות בחיי']}
+];
+
+var PIU = ['באיזו תדירות את/ה נשאר/ת מחובר/ת לאינטרנט יותר זמן ממה שתכננת','באיזו תדירות את/ה מזניח/ה מטלות ביתיות כדי לבלות יותר זמן באינטרנט','באיזו תדירות את/ה מעדיף/ה את ההתרגשות שבאינטרנט על פני אינטימיות עם בן/בת הזוג','באיזו תדירות את/ה יוצר/ת קשרים חדשים עם משתמשים אחרים באינטרנט','באיזו תדירות אנשים בסביבתך מתלוננים על משך הזמן שאת/ה מבלה באינטרנט','באיזו תדירות הציונים שלך או הביצועים בלימודים נפגעים בגלל האינטרנט','באיזו תדירות את/ה בודק/ת אימייל לפני דברים אחרים','באיזו תדירות הביצועים בעבודה נפגעים בגלל האינטרנט','באיזו תדירות את/ה נעשה/ית חשאי/ת כששואלים אותך מה את/ה עושה באינטרנט','באיזו תדירות את/ה מדחיק/ה מחשבות מטרידות באמצעות האינטרנט','באיזו תדירות את/ה מוצא/ת את עצמך מצפה לפעם הבאה באינטרנט','באיזו תדירות את/ה חושש/ת שחיים ללא אינטרנט יהיו משעממים','באיזו תדירות את/ה מתפרץ/ת כאשר מישהו מפריע לך בזמן שאת/ה באינטרנט','באיזו תדירות את/ה מאבד/ת שעות שינה בגלל שימוש באינטרנט','באיזו תדירות את/ה עסוק/ה במחשבות על האינטרנט גם כשאת/ה לא מחובר/ת','באיזו תדירות את/ה אומר/ת לעצמך "רק עוד כמה דקות" בזמן שאת/ה באינטרנט','באיזו תדירות את/ה מנסה להפחית את זמן השהייה באינטרנט ולא מצליח/ה','באיזו תדירות את/ה מנסה להסתיר כמה זמן היית באינטרנט','באיזו תדירות את/ה בוחר/ת לבלות יותר זמן באינטרנט במקום לצאת עם אחרים','באיזו תדירות את/ה מרגיש/ה מדוכא/ת כשאת/ה לא מחובר/ת והתחושה נעלמת כשחוזר/ת לאינטרנט'];
+var GAD = ['הרגשתי עצבני, חרד או מתוח מאוד','לא הצלחתי להפסיק לדאוג או לשלוט בדאגות שלי','דאגתי יותר מדי לגבי דברים שונים','התקשיתי להירגע','הייתי כל כך חסר מנוח עד שהיה לי קשה לשבת בשקט','הפכתי לנקל (עצבני) או מתוח בקלות','פחדתי שמשהו נורא עומד לקרות'];
+var BRIEF = ['יש לי התפרצויות כעס','אני עושה טעויות של חוסר תשומת לב','אני לא מאורגן','אני מתקשה להתרכז במטלות','אני מקיש באצבעותיי או מקפיץ רגלי','אני זקוק לתזכורת כדי להתחיל מטלה','הארון שלי מבולגן','אני מתקשה לעבור מפעילות אחת לשנייה','אני מרגיש מוצף ממטלות גדולות','אני שוכח את שמי','אני מתקשה במטלות שיש בהן יותר משלב אחד','אני מגיב תגובה רגשית מוגזמת','אני לא שם לב כאשר גורם לאחרים להרגיש רע עד שמאוחר מדי','אני מתקשה להתארגן לקראת יומי','אני מתקשה בקביעת סדרי עדיפויות','אני מתקשה לשבת במנוחה','אני שוכח מה אני עושה באמצע העניין','אני לא בודק את עבודתי','יש לי התפרצויות רגשיות מסיבות פעוטות','אני יושב הרבה בבית ללא מעש','אני מתחיל משימות ללא החומרים המתאימים','אני מתקשה לקבל דרכים שונות לפתור בעיות','אני מדבר בזמן הלא הנכון','אני לא מעריך נכונה את דרגת הקושי של מטלות','אני מתקשה להתחיל דברים בעצמי','אני מתקשה להישאר ממוקד באותו נושא','אני מתעייף','אני מגיב למצבים באופן רגשי יותר מאשר חברי','אני מתקשה להמתין לתורי','אנשים אומרים שאני לא מאורגן','אני מאבד דברים (מפתחות, כסף, ארנק)','אני מתקשה לחשוב על דרך אחרת לפתור בעיה','אני מגיב בצורה מוגזמת לבעיות קטנות','אני לא מתכנן מראש לקראת פעילויות עתידיות','טווח הקשב שלי קצר','אני מעיר הערות מיניות לא הולמות','כאשר אנשים מתעצבנים עליי אני לא מבין מדוע','אני מתקשה לספור עד שלוש','יש לי מטרות לא מציאותיות','אני משאיר את חדר האמבטיה מבולגן','אני עושה טעויות של חוסר תשומת לב','אני מתעצבן בקלות','אני מקבל החלטות שמכניסות אותי לצרות','אני מוטרד מן הצורך להתמודד עם שינויים','אני מתקשה להתרגש מדברים','אני שוכח הוראות בקלות','יש לי רעיונות טובים אך איני מסוגל להעלותם על הכתב','אני עושה טעויות','אני מתקשה להתחיל במשימות','אני אומר דברים בלי לחשוב','הכעס שלי עז אך פג מהר','אני מתקשה לסיים מטלות','אני מתחיל דברים ברגע האחרון','אני מתקשה לסיים מטלה בעצמי','אנשים אומרים שדעתי מוסחת בקלות','אני מתקשה לזכור דברים אפילו למספר דקות','אנשים אומרים שאני רגשן מדי','אני עושה דברים בחיפזון','אני מוטרד','אני משאיר את החדר שלי בבלגן','אני נהיה מוטרד משינויים לא צפויים','אני מתקשה להעלות רעיונות לגבי מה לעשות בזמני הפנוי','אני לא מתכנן קדימה לקראת מטלות','אנשים אומרים שאני לא חושב לפני שאני עושה','אני מתקשה למצוא דברים בחדרי','אני מתקשה לארגן פעילויות','לאחר שאני נתקל בבעיה אני לא מתגבר עליה בקלות','אני מתקשה לעשות יותר מדבר אחד בו זמנית','מצב רוחי משתנה לעיתים קרובות','אני לא חושב על ההשלכות לפני עשיית דבר מה','אני מתקשה לארגן את עבודתי','אני מתעצבן מהר בשל דברים קטנים','אני אימפולסיבי','אני משאיר אחרי דברים בכל מקום','אני מתקשה לסיים את עבודותיי'];
+var CONNERS = ['אני מפריע לאנשים אחרים','אני עונה את התשובה לפני שמסיימים לשאול','אני לומד לאט יותר לעומת ילדים אחרים בגילי','קשה לי לשמור על סדר וארגון','אני מדבר יותר מדי','אני מכין את שיעורי הבית באיחור','אני לא מצליח לעקוב אחר מה שעליי לעשות','יש לי יותר מדי אנרגיה בשביל לשבת בשקט','קשה לי לעקוב אחר הוראות','קשה לי להתרכז במה שאני עושה'];
+
+// ── BUILD UI ────────────────────────────────────────────
+function buildScale5(id, prefix) {
+  var wrap = document.getElementById(id);
+  if (!wrap) return;
+  var labels = ['הרבה מתחת לממוצע','','ממוצע','','הרבה מעל'];
+  for (var v = 1; v <= 5; v++) {
+    var item = document.createElement('div'); item.className = 'si';
+    var rid = prefix + '_' + v;
+    var r = document.createElement('input'); r.type = 'radio'; r.name = prefix; r.value = v; r.id = rid; r.className = 'srad';
+    (function(key, val){ r.addEventListener('change', function(){ answers[key] = val; }); })(prefix, v);
+    var btn = document.createElement('label'); btn.htmlFor = rid; btn.className = 'sbtn'; btn.textContent = v;
+    var lbl = document.createElement('div'); lbl.className = 'slbl'; lbl.textContent = labels[v-1];
+    item.appendChild(r); item.appendChild(btn); item.appendChild(lbl);
+    wrap.appendChild(item);
+  }
+}
+
+function buildLikert(tableId, items, labels, values, prefix) {
+  var t = document.getElementById(tableId);
+  if (!t) return;
+  var hRow = t.insertRow();
+  var th0 = document.createElement('th'); th0.style.width = '40%'; hRow.appendChild(th0);
+  for (var li = 0; li < labels.length; li++) {
+    var th = document.createElement('th'); th.textContent = labels[li]; hRow.appendChild(th);
+  }
+  for (var i = 0; i < items.length; i++) {
+    var row = t.insertRow();
+    var td0 = row.insertCell(); td0.className = 'il'; td0.textContent = (i+1) + '. ' + items[i];
+    for (var vi = 0; vi < values.length; vi++) {
+      var td = row.insertCell();
+      var key = prefix + '_' + i;
+      var val = values[vi];
+      var rid2 = key + '_' + vi;
+      var r2 = document.createElement('input'); r2.type = 'radio'; r2.name = key; r2.value = val; r2.id = rid2; r2.className = 'lr';
+      (function(k, v2){ r2.addEventListener('change', function(){ answers[k] = v2; }); })(key, val);
+      var lbl2 = document.createElement('label'); lbl2.htmlFor = rid2; lbl2.className = 'lb'; lbl2.textContent = val;
+      td.appendChild(r2); td.appendChild(lbl2);
+    }
+  }
+}
+
+function buildQ9() {
+  var wrap = document.getElementById('q9');
+  if (!wrap) return;
+  for (var i = 0; i < Q9E.length; i++) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);';
+    var lbl = document.createElement('span'); lbl.textContent = Q9E[i];
+    lbl.style.cssText = 'font-size:.83rem;color:var(--text);flex:1;';
+    var btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:8px;flex-shrink:0;margin-right:10px;';
+    var vals = ['כן','לא'];
+    for (var vi2 = 0; vi2 < vals.length; vi2++) {
+      var v3 = vals[vi2];
+      var key2 = 'q9_' + i;
+      var rid3 = key2 + '_' + vi2;
+      var r3 = document.createElement('input'); r3.type = 'radio'; r3.name = key2; r3.value = v3; r3.id = rid3; r3.className = 'cr';
+      (function(k2, v4){ r3.addEventListener('change', function(){ answers[k2] = v4; }); })(key2, v3);
+      var l3 = document.createElement('label'); l3.htmlFor = rid3; l3.className = 'cl'; l3.textContent = v3;
+      btns.appendChild(r3); btns.appendChild(l3);
+    }
+    row.appendChild(lbl); row.appendChild(btns);
+    wrap.appendChild(row);
+  }
+}
+
+function buildBHCQ() {
+  var body = document.getElementById('bhcq-body');
+  if (!body) return;
+  var qNum = 1;
+  for (var ci = 0; ci < BHCQ.length; ci++) {
+    var cat = BHCQ[ci];
+    var title = document.createElement('div'); title.className = 'ssec'; title.textContent = cat.n;
+    body.appendChild(title);
+    var wrap = document.createElement('div'); wrap.className = 'lw';
+    var t2 = document.createElement('table'); t2.className = 'lt';
+    var hRow2 = t2.insertRow();
+    var th02 = document.createElement('th'); th02.style.width = '40%'; hRow2.appendChild(th02);
+    for (var li2 = 0; li2 <= 5; li2++) {
+      var th2 = document.createElement('th'); th2.textContent = li2; hRow2.appendChild(th2);
+    }
+    for (var ii = 0; ii < cat.items.length; ii++) {
+      var row2 = t2.insertRow();
+      var td02 = row2.insertCell(); td02.className = 'il'; td02.textContent = qNum + '. ' + cat.items[ii];
+      var key3 = 'bhcq_' + ci + '_' + ii;
+      for (var v5 = 0; v5 <= 5; v5++) {
+        var td2 = row2.insertCell(); td2.style.textAlign = 'center';
+        var rid4 = key3 + '_' + v5;
+        var r4 = document.createElement('input'); r4.type = 'radio'; r4.name = key3; r4.value = v5; r4.id = rid4; r4.className = 'lr';
+        (function(k3, v6){ r4.addEventListener('change', function(){ answers[k3] = v6; }); })(key3, v5);
+        var l4 = document.createElement('label'); l4.htmlFor = rid4; l4.className = 'lb'; l4.textContent = v5;
+        td2.appendChild(r4); td2.appendChild(l4);
+      }
+      qNum++;
+    }
+    wrap.appendChild(t2); body.appendChild(wrap);
+  }
+}
+
+// ── NAV ─────────────────────────────────────────────────
+function goTo(s) {
+  if (s < 0 || s >= STEPS) return;
+  var cards = document.querySelectorAll('.card');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('show');
+  var card = document.getElementById('step-' + s);
+  if (card) card.classList.add('show');
+  document.getElementById('done-screen').classList.remove('show');
+  var tabs = document.querySelectorAll('.tab');
+  for (var j = 0; j < tabs.length; j++) tabs[j].classList.toggle('active', parseInt(tabs[j].getAttribute('data-step')) === s);
+  step = s;
+  updateNav();
+  window.scrollTo(0, 0);
+}
+
+function updateNav() {
+  var pct = Math.round(step / STEPS * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-lbl').textContent = 'שלב ' + (step+1) + ' מתוך ' + STEPS;
+  document.getElementById('step-ind').textContent = 'שלב ' + (step+1) + ' מתוך ' + STEPS;
+  document.getElementById('btn-back').style.display = step > 0 ? 'inline-block' : 'none';
+  var bn = document.getElementById('btn-next');
+  if (step === STEPS - 1) { bn.textContent = '✅ סיום'; bn.className = 'btn btn-ok'; }
+  else { bn.textContent = 'הבא ←'; bn.className = 'btn btn-p'; }
+}
+
+// ── SCORING ──────────────────────────────────────────────
+function sumA(prefix, count) {
+  var s = 0;
+  for (var i = 0; i < count; i++) { var v = answers[prefix + '_' + i]; if (v !== undefined) s += parseFloat(v); }
+  return s;
+}
+function sumBHCQ() {
+  var t = 0;
+  for (var ci = 0; ci < BHCQ.length; ci++)
+    for (var ii = 0; ii < BHCQ[ci].items.length; ii++) {
+      var v = answers['bhcq_' + ci + '_' + ii]; if (v !== undefined) t += parseFloat(v);
+    }
+  return t;
+}
+
+function submit() {
+  var genderEl = document.querySelector('input[name="p-gender"]:checked');
+  var piuWorkEl = document.querySelector('input[name="piu-work"]:checked');
+  var record = {
+    id: Date.now(),
+    name: document.getElementById('p-name').value,
+    code: document.getElementById('p-code').value,
+    age: document.getElementById('p-age').value,
+    gender: genderEl ? genderEl.value : '',
+    edu: document.getElementById('p-edu').value,
+    date: document.getElementById('p-date').value,
+    piu_years: document.getElementById('piu-years').value,
+    piu_work: piuWorkEl ? piuWorkEl.value : '',
+    gad: sumA('gad', 7),
+    piu: sumA('piu', 20),
+    brief: sumA('brief', BRIEF.length),
+    conners: sumA('conners', CONNERS.length),
+    bhcq: sumBHCQ(),
+    resilience: sumA('q5', 10),
+    community: sumA('q6', 9),
+    national: sumA('q7', 12),
+    raw: JSON.parse(JSON.stringify(answers))
+  };
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem('q_data') || '[]'); } catch(e) {}
+  saved.push(record);
+  try { localStorage.setItem('q_data', JSON.stringify(saved)); } catch(e) {}
+
+  var cards2 = document.querySelectorAll('.card');
+  for (var i = 0; i < cards2.length; i++) cards2[i].classList.remove('show');
+  document.getElementById('done-screen').classList.add('show');
+  document.getElementById('nav').style.display = 'none';
+}
+
+function startNew() {
+  answers = {};
+  var radios = document.querySelectorAll('input[type="radio"]');
+  for (var i = 0; i < radios.length; i++) radios[i].checked = false;
+  var checks = document.querySelectorAll('input[type="checkbox"]');
+  for (var j = 0; j < checks.length; j++) checks[j].checked = false;
+  var textInputs = document.querySelectorAll('.fi,.oi');
+  for (var k = 0; k < textInputs.length; k++) textInputs[k].value = '';
+  document.getElementById('p-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('name-disp').textContent = 'נא מלא פרטים בשלב הראשון';
+  var tabs2 = document.querySelectorAll('.tab');
+  for (var l = 0; l < tabs2.length; l++) { tabs2[l].classList.remove('done'); tabs2[l].classList.remove('active'); }
+  document.getElementById('done-screen').classList.remove('show');
+  document.getElementById('nav').style.display = 'flex';
+  goTo(0);
+}
+
+// ── RESEARCHER ───────────────────────────────────────────
+function openResearcher() {
+  var data = [];
+  try { data = JSON.parse(localStorage.getItem('q_data') || '[]'); } catch(e) {}
+
+  var stats = document.getElementById('stats');
+  stats.innerHTML = '';
+  var statItems = [
+    {v: data.length, l: 'נבדקים'},
+    {v: data.length ? Math.round(data.reduce(function(a,r){return a+(r.gad||0);},0)/data.length*10)/10 : '—', l: 'ממוצע GAD-7'},
+    {v: data.length ? Math.round(data.reduce(function(a,r){return a+(r.piu||0);},0)/data.length*10)/10 : '—', l: 'ממוצע PIU'},
+    {v: data.length ? Math.round(data.reduce(function(a,r){return a+(r.brief||0);},0)/data.length*10)/10 : '—', l: 'ממוצע BRIEF-A'},
+    {v: data.length ? Math.round(data.reduce(function(a,r){return a+(r.bhcq||0);},0)/data.length*10)/10 : '—', l: 'ממוצע BHCQ'}
+  ];
+  for (var si = 0; si < statItems.length; si++) {
+    var c = document.createElement('div'); c.className = 'stat';
+    c.innerHTML = '<div class="stat-v">' + statItems[si].v + '</div><div class="stat-l">' + statItems[si].l + '</div>';
+    stats.appendChild(c);
+  }
+
+  var tbody = document.getElementById('dt-body');
+  tbody.innerHTML = '';
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:22px;color:var(--text2)">אין נתונים עדיין</td></tr>';
+  } else {
+    for (var di = 0; di < data.length; di++) {
+      var r = data[di];
+      var row = document.createElement('tr');
+      row.innerHTML = '<td>'+(di+1)+'</td><td>'+(r.name||'—')+'</td><td>'+(r.code||'—')+'</td><td>'+(r.age||'—')+'</td><td>'+(r.gender||'—')+'</td>'
+        +'<td><strong>'+(r.gad!=null?r.gad:'—')+'</strong></td><td>'+(r.piu!=null?r.piu:'—')+'</td><td>'+(r.brief!=null?r.brief:'—')+'</td>'
+        +'<td>'+(r.conners!=null?r.conners:'—')+'</td><td>'+(r.bhcq!=null?r.bhcq:'—')+'</td><td>'+(r.resilience!=null?r.resilience:'—')+'</td>'
+        +'<td>'+(r.community!=null?r.community:'—')+'</td><td>'+(r.national!=null?r.national:'—')+'</td><td>'+(r.date||'—')+'</td>';
+      tbody.appendChild(row);
+    }
+  }
+  document.getElementById('res-overlay').classList.add('open');
+}
+
+function exportCSV() {
+  var data = [];
+  try { data = JSON.parse(localStorage.getItem('q_data') || '[]'); } catch(e) {}
+  if (!data.length) { showToast('אין נתונים לייצוא'); return; }
+  var headers = ['#','שם','קוד','גיל','מין','השכלה','GAD-7','PIU','BRIEF-A','Conners','BHCQ','חוסן','קהילה','לאומי','שנות אינטרנט','שימוש עסקי','תאריך'];
+  var rows = [headers];
+  for (var i = 0; i < data.length; i++) {
+    var r = data[i];
+    rows.push([i+1,r.name,r.code,r.age,r.gender,r.edu,r.gad,r.piu,r.brief,r.conners,r.bhcq,r.resilience,r.community,r.national,r.piu_years,r.piu_work,r.date]);
+  }
+  var csv = rows.map(function(row){ return row.map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(','); }).join('\n');
+  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'questionnaire_' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+  showToast('✅ קובץ CSV יוצא');
+}
+
+function exportJSON() {
+  var data = [];
+  try { data = JSON.parse(localStorage.getItem('q_data') || '[]'); } catch(e) {}
+  if (!data.length) { showToast('אין נתונים לייצוא'); return; }
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'questionnaire_' + new Date().toISOString().slice(0,10) + '.json'; a.click();
+  showToast('✅ קובץ JSON יוצא');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// ── INIT ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('p-date').value = new Date().toISOString().split('T')[0];
+
+  buildScale5('q1a', 'q1a');
+  buildScale5('q1b', 'q1b');
+  buildLikert('q3-t', Q3, ['1','2','3','4','5'], [1,2,3,4,5], 'q3');
+  buildLikert('q4-t', Q4, ['1','2','3','4','5'], [1,2,3,4,5], 'q4');
+  buildLikert('q5-t', Q5, ['0','1','2','3','4'], [0,1,2,3,4], 'q5');
+  buildLikert('q6-t', Q6, ['1','2','3','4','5'], [1,2,3,4,5], 'q6');
+  buildLikert('q7-t', Q7, ['1','2','3','4','5'], [1,2,3,4,5], 'q7');
+  buildQ9();
+  buildBHCQ();
+  buildLikert('piu-t', PIU, ['0','1','2','3','4','5'], [0,1,2,3,4,5], 'piu');
+  buildLikert('gad-t', GAD, ['כלל לא','כמה ימים','יותר ממחצית','כמעט כל יום'], [0,1,2,3], 'gad');
+  buildLikert('brief-t', BRIEF, ['אף פעם','מדי פעם','לעיתים קרובות'], [1,2,3], 'brief');
+  buildLikert('conners-t', CONNERS, ['אף פעם','לפעמים','לעיתים תכופות','בדרך כלל'], [0,1,2,3], 'conners');
+
+  // Tabs
+  var tabs = document.querySelectorAll('.tab');
+  for (var ti = 0; ti < tabs.length; ti++) {
+    (function(t){ t.addEventListener('click', function(){ goTo(parseInt(t.getAttribute('data-step'))); }); })(tabs[ti]);
+  }
+
+  // Nav buttons
+  document.getElementById('btn-next').addEventListener('click', function() {
+    if (step < STEPS - 1) {
+      document.getElementById('tab-' + step) && document.querySelectorAll('.tab')[step].classList.add('done');
+      goTo(step + 1);
+    } else {
+      document.querySelectorAll('.tab')[step].classList.add('done');
+      submit();
+    }
+  });
+  document.getElementById('btn-back').addEventListener('click', function() { if (step > 0) goTo(step - 1); });
+  document.getElementById('btn-new').addEventListener('click', startNew);
+
+  // Name display
+  document.getElementById('p-name').addEventListener('input', function() {
+    var v = this.value.trim();
+    document.getElementById('name-disp').textContent = v || 'נא מלא פרטים בשלב הראשון';
+  });
+
+  // Theme
+  document.getElementById('btn-theme').addEventListener('click', function() {
+    var r = document.documentElement;
+    var cur = r.getAttribute('data-theme');
+    r.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    this.textContent = cur === 'dark' ? '🌙' : '☀️';
+  });
+
+  // Lock
+  document.getElementById('btn-researcher').addEventListener('click', function() {
+    document.getElementById('lock-inp').value = '';
+    document.getElementById('lock-err').textContent = '';
+    document.getElementById('lock-overlay').classList.add('open');
+    setTimeout(function(){ document.getElementById('lock-inp').focus(); }, 150);
+  });
+  document.getElementById('btn-lock-ok').addEventListener('click', function() {
+    var code = document.getElementById('lock-inp').value;
+    if (code === CODE) {
+      document.getElementById('lock-overlay').classList.remove('open');
+      openResearcher();
+    } else {
+      document.getElementById('lock-err').textContent = 'קוד שגוי, נסה/י שוב';
+    }
+  });
+  document.getElementById('lock-inp').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('btn-lock-ok').click();
+  });
+  document.getElementById('btn-lock-cancel').addEventListener('click', function() {
+    document.getElementById('lock-overlay').classList.remove('open');
+  });
+
+  // Researcher modal close
+  document.getElementById('btn-res-close').addEventListener('click', function() {
+    document.getElementById('res-overlay').classList.remove('open');
+  });
+  document.getElementById('res-overlay').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  // Export
+  document.getElementById('btn-csv').addEventListener('click', exportCSV);
+  document.getElementById('btn-json').addEventListener('click', exportJSON);
+  document.getElementById('btn-clear').addEventListener('click', function() {
+    if (confirm('האם למחוק את כל הנתונים?')) {
+      localStorage.removeItem('q_data');
+      openResearcher();
+      showToast('🗑️ הנתונים נמחקו');
+    }
+  });
+
+  updateNav();
+});
+
+})();
+</script>
+</body>
+</html>
